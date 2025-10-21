@@ -9,7 +9,7 @@ export default function AdminLayout() {
       <div>
          <Header />
          <div className="flex ">
-            <Menu className="" />
+            <Menu />
             <div className="flex-1 p-6">
                <Outlet />
             </div>

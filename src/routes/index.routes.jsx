@@ -27,12 +27,8 @@ const PromotionManager = React.lazy(() =>
 const PaymentManager = React.lazy(() => import("@/pages/admin/paymentManager"));
 const NotFound = React.lazy(() => import("@/pages/admin/notFound"));
 
-// Các route liên quan tới trang user
-const UserLayout = React.lazy(() => import("@/layouts/user/UserLayout"));
-
 // Các route liên quan tới đăng nhập và đăng xuất
 const Login = React.lazy(() => import("@/pages/auth/login"));
-const Register = React.lazy(() => import("@/pages/auth/register"));
 
 const routes = createBrowserRouter([
    {
@@ -44,22 +40,6 @@ const routes = createBrowserRouter([
       element: (
          <LazyLoadComponent>
             <Login />
-         </LazyLoadComponent>
-      ),
-   },
-   {
-      path: "/register",
-      element: (
-         <LazyLoadComponent>
-            <Register />
-         </LazyLoadComponent>
-      ),
-   },
-   {
-      path: "/user",
-      element: (
-         <LazyLoadComponent>
-            <UserLayout />
          </LazyLoadComponent>
       ),
    },
