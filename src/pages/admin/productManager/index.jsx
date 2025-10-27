@@ -17,6 +17,7 @@ import { EditForm } from "./edit";
 import { AddForm } from "./add";
 import { useToggle } from "@/hooks/useToggle";
 import { useNavigate } from "react-router-dom";
+const navigate = useNavigate();
 
 export default function ProductManager() {
   const params = new URLSearchParams(window.location.search);
@@ -99,8 +100,7 @@ export default function ProductManager() {
       ),
     },
   ];
-
-  const navigate = useNavigate();
+  
   const handleDelete = async (data, id) => {
     try {
       const result = await useProduct("delete", `/product/${id}`);
