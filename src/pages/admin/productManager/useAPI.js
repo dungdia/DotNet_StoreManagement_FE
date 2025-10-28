@@ -6,15 +6,24 @@ export const useAPI = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const api = useCallback(async (method, url, payload = null) => {
+  const api = useCallback(async (method, url, payload = null, config = {}) => {
     setLoading(true);
     setError(null);
+
+    var type = { ...config.headers };
+    if (payload instanceof FormData) {
+      type = { "Content-Type": "multipart/form-data", ...config.headers };
+    }
+
     try {
       const response = await baseUrl({
         method,
+        headers: type,
+        ...config,
         url,
         data: payload,
       });
+      // console.log(response.data);
       setData(response.data);
       return response.data;
     } catch (err) {
@@ -24,6 +33,5 @@ export const useAPI = () => {
       setLoading(false);
     }
   }, []);
-
-  return { data, loading, error, api };
+  return { data, loading, error, api, setData };
 };
