@@ -48,13 +48,20 @@ export const getColumns = (props) => [
     fixed: "right",
     render: (_, record) => (
       <Space>
-        <Button>Xem</Button>
+        <Button
+          onClick={() => {
+            props.setProductId(record.productId);
+            props.toggleViewModal();
+          }}
+        >
+          Xem
+        </Button>
 
         <Button
           type="link"
           onClick={() => {
             props.setEditingProduct(record);
-            props.toggleModal();
+            props.toggleEditModal();
           }}
         >
           Sửa
