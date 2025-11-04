@@ -1,17 +1,35 @@
-import { Checkbox, Form, Input, Button } from "antd";
+import { Checkbox, Form, Input, Button, message } from "antd";
 import "./login.css";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Logged } from "@/services/authService";
 
 export default function Login() {
+   const navigate = useNavigate();
+   // Tạo message API của Ant Design để hiển thị popup
+   const [messageApi, contextHolder] = message.useMessage();
+
    const onFinish = async (values) => {
-      const response = await Logged(values);
-      console.log("Success:", response.content.access_token);
+      try {
+         const response = await Logged(values);
+         console.log("Success:", response?.content?.access_token);
+
+         // Hiển thị thông báo thành công rồi mới điều hướng
+         messageApi.success({
+            content: "Đăng nhập thành công",
+            duration: 1.5,
+            onClose: () => navigate("/admin"),
+         });
+      } catch (err) {
+         messageApi.error({
+            content: "Đăng nhập thất bại. Vui lòng thử lại!",
+         });
+      }
    };
 
    return (
       <>
+         {contextHolder}
          <div
             id="auth-login"
             className="h-screen flex justify-center items-center"
@@ -83,11 +101,11 @@ export default function Login() {
                         Đăng nhập
                      </Button>
                   </Form.Item>
-                  <div className="flex justify-center">
+                  {/* <div className="flex justify-center">
                      <Link className="underline text-[16 px] font-semibold">
                         Đăng ký tài khoản
                      </Link>
-                  </div>
+                  </div> */}
                </Form>
             </div>
          </div>
