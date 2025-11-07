@@ -1,10 +1,11 @@
 import { Input, Pagination, Select, Space, Table, Tag, Button, message, Popconfirm } from "antd";
 import { EyeOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import "./customerManager.css";
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer, searchCustomers } from "@/services/customerService";
 import CustomerForm from "./CustomerForm";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function CustomerManager() {
    const queryClient = useQueryClient();
@@ -15,16 +16,46 @@ export default function CustomerManager() {
    // Tìm kiếm 1 ô duy nhất, áp dụng cho 5 trường: ID, Tên, SĐT, Địa chỉ, Email
    const [searchText, setSearchText] = useState("");
    const [appliedSearch, setAppliedSearch] = useState("");
+   const debouncedSearch = useDebounce(searchText, 400);
 
-   // Trình lấy dữ liệu tìm kiếm: thử tuần tự các field (tránh AND trên backend)
+   // Tự động áp dụng tìm kiếm khi người dùng gõ (debounce)
+   useEffect(() => {
+      setAppliedSearch((debouncedSearch || "").trim());
+      setPage(1);
+   }, [debouncedSearch]);
+
+   // Hàm tìm kiếm tuần tự theo heuristic
    const fetchSearchSequential = async (kw, pageNum, size) => {
       const keyword = (kw || "").trim();
       if (!keyword) return getCustomers({ PageNumber: pageNum, PageSize: size });
 
       const isDigits = /^\d+$/.test(keyword);
 
-      // Helper thử một lần theo field
       const tryField = (field) => searchCustomers({ [field]: keyword, PageNumber: pageNum, PageSize: size });
+         // Guard: nếu backend trả về "toàn bộ" thay vì dữ liệu đã lọc, ta phát hiện
+         // không có item nào khớp từ khoá và trả về rỗng để UI không hiển thị sai.
+         const guardEmptyIfNoMatch = (res) => {
+            const items = res?.items || [];
+            const lower = keyword.toLowerCase();
+            const matched = items.some((it) => {
+               const idStr = (it?.customerId ?? "").toString();
+               const phoneStr = (it?.phone ?? "").toString();
+               const nameStr = (it?.name ?? "").toString().toLowerCase();
+               const emailStr = (it?.email ?? "").toString().toLowerCase();
+               const addrStr = (it?.address ?? "").toString().toLowerCase();
+               return (
+                  idStr === keyword ||
+                  phoneStr.includes(keyword) ||
+                  nameStr.includes(lower) ||
+                  emailStr.includes(lower) ||
+                  addrStr.includes(lower)
+               );
+            });
+            if (!matched) {
+               return { items: [], total: 0, meta: res?.meta || {}, raw: res?.raw };
+            }
+            return res;
+         };
 
       if (isDigits) {
          // Ưu tiên SĐT (thường 10 số). Nếu không có kết quả, fallback sang CustomerId
@@ -34,7 +65,7 @@ export default function CustomerManager() {
          if (!res?.total) {
             res = await tryField(secondary);
          }
-         return res;
+            return guardEmptyIfNoMatch(res);
       }
 
       // Không phải số: ưu tiên heuristics -> Email nếu có '@', còn lại thử Name rồi Address
@@ -44,10 +75,10 @@ export default function CustomerManager() {
 
       for (const field of candidates) {
          const res = await tryField(field);
-         if (res?.total) return res;
+            if (res?.total) return guardEmptyIfNoMatch(res);
       }
       // Không có gì khớp, trả về kết quả cuối cùng (rỗng)
-      return tryField(candidates[candidates.length - 1]);
+         return { items: [], total: 0, meta: {}, raw: null };
    };
 
    const { data, isLoading, isError } = useQuery({

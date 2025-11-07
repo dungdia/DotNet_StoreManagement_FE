@@ -1,8 +1,26 @@
-import { Avatar, Dropdown} from "antd";
+import { Avatar, Button, Dropdown, Modal, message } from "antd";
 import { Bell } from "lucide-react";
+import { Logout } from "@/services/authService";
 import "./header.css";
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
+   const navigate = useNavigate();
+
+   const confirmLogout = () => {
+      Modal.confirm({
+         title: "Xác nhận đăng xuất",
+         content: "Bạn có chắc chắn muốn đăng xuất không?",
+         okText: "Đăng xuất",
+         cancelText: "Hủy",
+         okType: "danger",
+         onOk: async () => {
+            await Logout();
+            message.success("Đăng xuất thành công");
+            navigate("/login");
+         }
+      })
+   }
    const items = [
       {
          label: (
@@ -32,7 +50,9 @@ export default function Header() {
          type: "divider",
       },
       {
-         label: "3rd menu item",
+         label: (
+            <Button type="link" onClick={confirmLogout}>Đăng xuất</Button>
+         ),
          key: "3",
       },
    ];
