@@ -3,6 +3,7 @@ import "./login.css";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Logged } from "@/services/authService";
+import Cookies from "js-cookie";
 
 export default function Login() {
    const navigate = useNavigate();
@@ -12,7 +13,10 @@ export default function Login() {
    const onFinish = async (values) => {
       try {
          const response = await Logged(values);
-         console.log("Success:", response?.content?.access_token);
+         // console.log("Success:", response?.content?.access_token);
+         const token = response?.content?.access_token;
+         // Lưu token vào Cookies
+         Cookies.set("accessToken", token);
 
          // Hiển thị thông báo thành công rồi mới điều hướng
          messageApi.success({

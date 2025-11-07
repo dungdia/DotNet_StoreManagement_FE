@@ -46,7 +46,7 @@ export const deleteCustomer = async (id) => {
   return res?.data ?? null;
 }
 
-// Tìm kiếm khách hàng với nhiều tham số (tất cả đều optional)
+// Tìm kiếm khách hàng
 export const searchCustomers = async (params = {}) => {
   const {
     CustomerId,
